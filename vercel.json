@@ -1,5 +1,8 @@
 {
-  "buildCommand": "npx convex dev && next build",
+  "buildCommand": "next build",
   "installCommand": "npm install",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_CONVEX_URL": "https://relaxed-llama-123.convex.cloud"
+  }
 }
