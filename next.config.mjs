@@ -6,15 +6,12 @@ const __dirname = dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: true,
-  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      "@": resolve(__dirname),
-      "@/convex": resolve(__dirname, "convex"),
-      "@/src": resolve(__dirname, "src"),
+      "@": require("path").resolve(__dirname, "./"),
+      "@/convex": require("path").resolve(__dirname, "./convex"),
+      "@/src": require("path").resolve(__dirname, "./src"),
     };
     return config;
   },

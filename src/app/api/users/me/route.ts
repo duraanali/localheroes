@@ -21,10 +21,7 @@ export async function GET(req: Request) {
     // Get and verify the auth token
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const token = authHeader.split(" ")[1];
@@ -36,10 +33,7 @@ export async function GET(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Remove sensitive information
@@ -48,12 +42,9 @@ export async function GET(req: Request) {
     return NextResponse.json(userInfo);
   } catch (error) {
     console.error("Error fetching user:", error);
-    
+
     if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     return NextResponse.json(
@@ -61,4 +52,4 @@ export async function GET(req: Request) {
       { status: 500 }
     );
   }
-} 
+}
