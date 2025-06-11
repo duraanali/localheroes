@@ -9,9 +9,9 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      "@": require("path").resolve(__dirname, "./"),
-      "@/convex": require("path").resolve(__dirname, "./convex"),
-      "@/src": require("path").resolve(__dirname, "./src"),
+      "@": resolve(__dirname, "./"),
+      "@/convex": resolve(__dirname, "./convex"),
+      "@/src": resolve(__dirname, "./src"),
     };
     return config;
   },
