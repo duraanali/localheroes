@@ -1,63 +1,46 @@
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 
-// Initialize Convex client
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-if (!convexUrl) {
-  throw new Error("NEXT_PUBLIC_CONVEX_URL is not set");
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+// Ensure JWT_SECRET is defined
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined");
 }
-const convex = new ConvexHttpClient(convexUrl);
 
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not set");
-}
 
-// Validation schema
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
+  email: z.string().email(),
+  password: z.string().min(6),
 });
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    // Parse and validate request body
-    const body = await req.json();
-    const validationResult = loginSchema.safeParse(body);
+    const body = await request.json();
+    const { email, password } = loginSchema.parse(body);
 
-    if (!validationResult.success) {
-      return NextResponse.json(
-        { error: validationResult.error.errors[0].message },
-        { status: 400 }
-      );
-    }
-
-    const { email, password } = validationResult.data;
-
-    // Get user by email
-    const user = await convex.query(api.users.getUserByEmail, {
-      email,
-    });
-
+    // Find user
+    const user = await convex.query(api.users.getUserByEmail, { email });
     if (!user) {
       return NextResponse.json(
-        { error: "Invalid credentials" },
+        { error: "Invalid email or password" },
         { status: 401 }
       );
     }
 
-    // Verify password using the auth action
+    // Verify password
     const isValid = await convex.action(api.auth.verifyPassword, {
-      hashedPassword: user.password,
       password,
+      hashedPassword: user.password,
     });
 
     if (!isValid) {
       return NextResponse.json(
-        { error: "Invalid credentials" },
+        { error: "Invalid email or password" },
         { status: 401 }
       );
     }
@@ -71,21 +54,19 @@ export async function POST(req: Request) {
       token,
       user: {
         id: user._id,
-        name: user.name,
         email: user.email,
+        name: user.name,
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
-
-    // Handle specific error cases
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.errors[0].message },
+        { error: "Invalid input", details: error.errors },
         { status: 400 }
       );
     }
 
+    console.error("Login error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
