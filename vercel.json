@@ -4,7 +4,7 @@
   "framework": "nextjs",
   "env": {
     "NEXT_PUBLIC_CONVEX_URL": "https://relaxed-llama-123.convex.cloud",
-    "CONVEX_DEPLOY_KEY": "@convex_deploy_key"
+    "CONVEX_DEPLOY_KEY": "convex_deploy_key"
   },
   "builds": [
     {
