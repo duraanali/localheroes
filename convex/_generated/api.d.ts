@@ -16,6 +16,7 @@ import type {
 import type * as auth from "../auth.js";
 import type * as heroes from "../heroes.js";
 import type * as interactions from "../interactions.js";
+import type * as tokenBlacklist from "../tokenBlacklist.js";
 import type * as users from "../users.js";
 
 /**
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   heroes: typeof heroes;
   interactions: typeof interactions;
+  tokenBlacklist: typeof tokenBlacklist;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

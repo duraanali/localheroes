@@ -4,11 +4,35 @@ Base URL: `https://localheroes.vercel.app`
 
 ## Authentication
 
+This API uses JWT (JSON Web Tokens) for authentication with token blacklisting for secure logout functionality.
+
+### Token Management
+
+- **Token Format**: JWT tokens with 7-day expiration
+- **Storage**: Tokens are stored client-side (localStorage/sessionStorage)
+- **Blacklisting**: Logged out tokens are blacklisted in the database
+- **Validation**: All authenticated requests validate token authenticity and blacklist status
+
+### Authorization Header
+
 All authenticated endpoints require a JWT token in the Authorization header:
 
 ```
 Authorization: Bearer <your_jwt_token>
 ```
+
+### Token Validation Process
+
+1. **Token Format Check**: Validates Bearer token format
+2. **JWT Verification**: Verifies token signature and expiration
+3. **Blacklist Check**: Ensures token hasn't been revoked via logout
+4. **User Context**: Extracts user information for request processing
+
+### Error Responses
+
+- **401 Unauthorized**: Missing or invalid Authorization header
+- **401 Invalid token**: JWT verification failed (expired, malformed, etc.)
+- **401 Token has been revoked**: Token is in blacklist (user logged out)
 
 ## Auth Endpoints
 
@@ -72,6 +96,60 @@ Authorization: Bearer <your_jwt_token>
   - 400: Invalid input
   - 401: Invalid credentials
   - 500: Internal server error
+
+### Logout
+
+- **POST** `/api/auth/logout`
+- **Description**: Securely logout user by blacklisting their JWT token
+- **Authentication**: Required (valid JWT token)
+- **Process**:
+  1. Validates the provided JWT token
+  2. Adds token to blacklist in database
+  3. Returns success response
+  4. Client should remove token from storage
+- **Success Response** (200):
+  ```json
+  {
+    "success": true,
+    "message": "Logged out successfully",
+    "userId": "string"
+  }
+  ```
+- **Error Responses**:
+  - 401: Invalid or missing token
+  - 500: Internal server error
+
+**Client-side Logout Example:**
+
+```javascript
+const logout = async () => {
+  try {
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      // Remove token from client storage
+      localStorage.removeItem("token");
+      // Redirect to login page
+      window.location.href = "/login";
+    }
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+};
+```
+
+**Token Blacklist Management:**
+
+- Tokens are automatically blacklisted on logout
+- Blacklisted tokens are rejected on all authenticated requests
+- Expired tokens can be manually cleaned up using the cleanup function
+- Blacklist includes token hash, user ID, and expiration timestamp
 
 ## Heroes Endpoints
 

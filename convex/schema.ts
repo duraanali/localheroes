@@ -40,4 +40,14 @@ export default defineSchema({
   })
     .index("by_hero", ["hero_id"])
     .index("by_user", ["user_id"]),
+
+  token_blacklist: defineTable({
+    token: v.string(),
+    user_id: v.string(),
+    expires_at: v.number(),
+    created_at: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_user", ["user_id"])
+    .index("by_expires_at", ["expires_at"]),
 });
