@@ -340,6 +340,24 @@ const logout = async () => {
   - 401: Unauthorized
   - 500: Internal server error
 
+### Delete Comment
+
+- **DELETE** `/api/heroes/:id/comments/:commentId`
+- **Description**: Delete a comment (only by the comment author)
+- **Authentication**: Required
+- **Success Response** (200):
+  ```json
+  {
+    "success": true
+  }
+  ```
+- **Error Responses**:
+  - 400: Comment ID is required
+  - 401: Unauthorized
+  - 403: Only the comment author can delete this comment
+  - 404: Comment not found
+  - 500: Internal server error
+
 ## User Endpoints
 
 ### Get Current User

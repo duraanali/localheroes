@@ -229,6 +229,32 @@ export const createHeroComment = mutation({
   },
 });
 
+export const deleteHeroComment = mutation({
+  args: {
+    commentId: v.id("comments"),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { commentId, userId } = args;
+
+    // Get the comment
+    const comment = await ctx.db.get(commentId);
+    if (!comment) {
+      throw new Error("Comment not found");
+    }
+
+    // Check if user is the author of the comment
+    if (comment.user_id !== userId) {
+      throw new Error("Only the comment author can delete this comment");
+    }
+
+    // Delete the comment
+    await ctx.db.delete(commentId);
+
+    return { success: true };
+  },
+});
+
 // Delete a hero (only by creator)
 export const deleteHero = mutation({
   args: {
