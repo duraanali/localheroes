@@ -80,6 +80,31 @@ export const getHeroById = query({
       .filter((q) => q.eq(q.field("hero_id"), args.id))
       .collect();
 
+    // Get user information for each comment
+    const commentsWithUsers = await Promise.all(
+      comments.map(async (comment) => {
+        const user = await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("_id"), comment.user_id))
+          .first();
+
+        return {
+          id: comment._id,
+          text: comment.text,
+          created_by: comment.user_id,
+          created_at: comment.created_at,
+          user: user
+            ? {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                avatarUrl: user.avatarUrl,
+              }
+            : null,
+        };
+      })
+    );
+
     const thanks = await ctx.db
       .query("thanks")
       .filter((q) => q.eq(q.field("hero_id"), args.id))
@@ -87,7 +112,7 @@ export const getHeroById = query({
 
     return {
       ...hero,
-      comments,
+      comments: commentsWithUsers,
       thanks_count: thanks.length,
     };
   },
@@ -139,6 +164,7 @@ export const thankHero = mutation({
 
     return {
       success: true,
+      userId: userId,
       total: thanks.length,
     };
   },
@@ -149,10 +175,37 @@ export const getHeroComments = query({
     heroId: v.id("heroes"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const comments = await ctx.db
       .query("comments")
       .filter((q) => q.eq(q.field("hero_id"), args.heroId))
       .collect();
+
+    // Get user information for each comment
+    const commentsWithUsers = await Promise.all(
+      comments.map(async (comment) => {
+        const user = await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("_id"), comment.user_id))
+          .first();
+
+        return {
+          id: comment._id,
+          text: comment.text,
+          created_by: comment.user_id,
+          created_at: comment.created_at,
+          user: user
+            ? {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                avatarUrl: user.avatarUrl,
+              }
+            : null,
+        };
+      })
+    );
+
+    return commentsWithUsers;
   },
 });
 

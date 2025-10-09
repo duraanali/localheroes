@@ -239,7 +239,13 @@ const logout = async () => {
         "id": "string",
         "text": "string",
         "created_by": "string",
-        "created_at": "number"
+        "created_at": "number",
+        "user": {
+          "id": "string",
+          "name": "string",
+          "email": "string",
+          "avatarUrl": "string"
+        }
       }
     ]
   }
@@ -273,7 +279,9 @@ const logout = async () => {
 - **Success Response** (200):
   ```json
   {
-    "success": true
+    "success": true,
+    "userId": "string",
+    "total": "number"
   }
   ```
 - **Error Responses**:
@@ -284,7 +292,7 @@ const logout = async () => {
 ### Get Hero Comments
 
 - **GET** `/api/heroes/:id/comments`
-- **Description**: Get all comments for a hero
+- **Description**: Get all comments for a hero with user information
 - **Success Response** (200):
   ```json
   [
@@ -292,7 +300,13 @@ const logout = async () => {
       "id": "string",
       "text": "string",
       "created_by": "string",
-      "created_at": "number"
+      "created_at": "number",
+      "user": {
+        "id": "string",
+        "name": "string",
+        "email": "string",
+        "avatarUrl": "string"
+      }
     }
   ]
   ```
