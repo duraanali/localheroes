@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
 
@@ -27,7 +28,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const heroId = params.id;
+    const heroId = params.id as Id<"heroes">;
 
     // Get comments for hero
     const comments = await convex.query(api.heroes.getHeroComments, {
@@ -57,7 +58,7 @@ export async function POST(
     }
 
     const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    const decoded = jwt.verify(token, JWT_SECRET!) as { id: string };
 
     // Parse and validate request body
     const body = await req.json();
@@ -70,7 +71,7 @@ export async function POST(
       );
     }
 
-    const heroId = params.id;
+    const heroId = params.id as Id<"heroes">;
     const { text } = validationResult.data;
 
     // Create comment
@@ -97,69 +98,6 @@ export async function POST(
 
     return NextResponse.json(
       { error: "Failed to create comment" },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE /api/heroes/:id/comments/:commentId
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // Get and verify the auth token
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
-
-    // Get comment ID from URL
-    const url = new URL(req.url);
-    const pathSegments = url.pathname.split("/");
-    const commentId = pathSegments[pathSegments.length - 1];
-
-    if (!commentId) {
-      return NextResponse.json(
-        { error: "Comment ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // Delete comment
-    const result = await convex.mutation(api.heroes.deleteHeroComment, {
-      commentId,
-      userId: decoded.id,
-    });
-
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error("Error deleting comment:", error);
-
-    if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    if (error instanceof Error) {
-      if (error.message === "Comment not found") {
-        return NextResponse.json(
-          { error: "Comment not found" },
-          { status: 404 }
-        );
-      }
-      if (error.message === "Only the comment author can delete this comment") {
-        return NextResponse.json(
-          { error: "Only the comment author can delete this comment" },
-          { status: 403 }
-        );
-      }
-    }
-
-    return NextResponse.json(
-      { error: "Failed to delete comment" },
       { status: 500 }
     );
   }

@@ -302,3 +302,43 @@ export const deleteHero = mutation({
     return { success: true };
   },
 });
+
+// Get all thanks given by a specific user
+export const getThanksByUser = query({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const thanks = await ctx.db
+      .query("thanks")
+      .filter((q) => q.eq(q.field("user_id"), args.userId))
+      .collect();
+
+    // Get hero information for each thank
+    const thanksWithHeroes = await Promise.all(
+      thanks.map(async (thank) => {
+        const hero = await ctx.db.get(thank.hero_id);
+        return {
+          id: thank._id,
+          hero_id: thank.hero_id,
+          user_id: thank.user_id,
+          created_at: thank.created_at,
+          hero: hero
+            ? {
+                id: hero._id,
+                full_name: hero.full_name,
+                story: hero.story,
+                location: hero.location,
+                tags: hero.tags,
+                photo_url: hero.photo_url,
+                created_by: hero.created_by,
+                created_at: hero.created_at,
+              }
+            : null,
+        };
+      })
+    );
+
+    return thanksWithHeroes;
+  },
+});

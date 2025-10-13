@@ -411,3 +411,31 @@ const logout = async () => {
   ```
 - **Error Response**:
   - 500: Internal server error
+
+### Get User's Thanks
+
+- **GET** `/api/users/:id/thanks`
+- **Description**: Get all thanks given by a specific user, including hero information
+- **Success Response** (200):
+  ```json
+  [
+    {
+      "id": "string",
+      "hero_id": "string",
+      "user_id": "string",
+      "created_at": "number",
+      "hero": {
+        "id": "string",
+        "full_name": "string",
+        "story": "string",
+        "location": "string",
+        "tags": ["string"],
+        "photo_url": "string",
+        "created_by": "string",
+        "created_at": "number"
+      }
+    }
+  ]
+  ```
+- **Error Response**:
+  - 500: Internal server error
