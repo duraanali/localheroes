@@ -3,6 +3,11 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
+import {
+  addCorsHeaders,
+  createCorsResponse,
+  handleCorsPreflight,
+} from "../../../utils/cors";
 
 // Initialize Convex client
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
@@ -25,6 +30,11 @@ const createHeroSchema = z.object({
   photo_url: z.string().url("Photo URL must be a valid URL"),
 });
 
+// Handle CORS preflight requests
+export async function OPTIONS(req: Request) {
+  return handleCorsPreflight();
+}
+
 // GET /api/heroes
 export async function GET(req: Request) {
   try {
@@ -38,13 +48,10 @@ export async function GET(req: Request) {
       location: location || undefined,
     });
 
-    return NextResponse.json(heroes);
+    return createCorsResponse(heroes);
   } catch (error) {
     console.error("Error fetching heroes:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch heroes" },
-      { status: 500 }
-    );
+    return createCorsResponse({ error: "Failed to fetch heroes" }, 500);
   }
 }
 
@@ -58,7 +65,7 @@ export async function POST(req: Request) {
     }
 
     const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    const decoded = jwt.verify(token, JWT_SECRET!) as { id: string };
 
     // Parse and validate request body
     const body = await req.json();
@@ -79,24 +86,18 @@ export async function POST(req: Request) {
       userId: decoded.id,
     });
 
-    return NextResponse.json(hero, { status: 201 });
+    return createCorsResponse(hero, 201);
   } catch (error) {
     console.error("Error creating hero:", error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: error.errors[0].message },
-        { status: 400 }
-      );
+      return createCorsResponse({ error: error.errors[0].message }, 400);
     }
 
     if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      return createCorsResponse({ error: "Invalid token" }, 401);
     }
 
-    return NextResponse.json(
-      { error: "Failed to create hero" },
-      { status: 500 }
-    );
+    return createCorsResponse({ error: "Failed to create hero" }, 500);
   }
 }
