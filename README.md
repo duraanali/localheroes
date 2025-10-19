@@ -439,3 +439,33 @@ const logout = async () => {
   ```
 - **Error Response**:
   - 500: Internal server error
+
+### Get Current User's Thanks
+
+- **GET** `/api/users/me/thanks`
+- **Description**: Get all thanks given by the currently logged-in user, including hero information
+- **Authentication**: Required
+- **Success Response** (200):
+  ```json
+  [
+    {
+      "id": "string",
+      "hero_id": "string",
+      "user_id": "string",
+      "created_at": "number",
+      "hero": {
+        "id": "string",
+        "full_name": "string",
+        "story": "string",
+        "location": "string",
+        "tags": ["string"],
+        "photo_url": "string",
+        "created_by": "string",
+        "created_at": "number"
+      }
+    }
+  ]
+  ```
+- **Error Responses**:
+  - 401: Unauthorized (invalid/missing token)
+  - 500: Internal server error
