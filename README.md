@@ -2,6 +2,46 @@
 
 Base URL: `https://localheroes.vercel.app`
 
+## Calling the API from a Vite + React frontend
+
+CORS is handled by the API. Requests are accepted from any origin, so `http://localhost:5173`, `http://localhost:5174` and your deployed site (Vercel, Netlify, GitHub Pages, ...) all work with no configuration on your side.
+
+**1. Put the base URL in one place in your code** and build every request from it. Never use a relative path such as `/api/heroes`: it hits your own Vite server, which has no API, and the resulting 404 shows up in the console as a CORS error.
+
+```javascript
+// src/api.js
+export const API_URL = "https://localheroes.vercel.app";
+```
+
+```javascript
+import { API_URL } from "./api";
+
+// Public endpoint
+const heroes = await fetch(`${API_URL}/api/heroes`).then((res) => res.json());
+
+// Authenticated endpoint
+const response = await fetch(`${API_URL}/api/heroes`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+  body: JSON.stringify(newHero),
+});
+```
+
+**2. Send the token in the `Authorization` header, as above.** You do not need `credentials: "include"` or axios `withCredentials`; the token is not a cookie.
+
+**3. Deploying changes nothing.** The same code works on `localhost` and on your Vercel or Netlify URL. There are no environment variables to set.
+
+### Still seeing a CORS error?
+
+The API sends CORS headers on every response, including 401, 404 and 500, so a CORS message in the console almost always means the request never reached the API. Check, in this order:
+
+- **The URL.** Copy the exact URL from the error and open it in a new tab. If it 404s, the path or base URL is wrong: a missing `/api`, an extra trailing slash, or `http://` instead of `https://`.
+- **You opened `index.html` from disk.** A `file://` page has no origin and cannot make cross-origin requests. Serve it with `npm run dev` or `npm run preview`.
+- **Your own Vercel API has Deployment Protection on.** Only relevant if you are calling an API you deployed to Vercel yourself: with "Vercel Authentication" enabled, the browser's preflight request gets a login page instead of an API response. Turn it off under Project Settings, then Deployment Protection.
+
 ## Authentication
 
 This API uses JWT (JSON Web Tokens) for authentication with token blacklisting for secure logout functionality.
@@ -124,7 +164,7 @@ Authorization: Bearer <your_jwt_token>
 ```javascript
 const logout = async () => {
   try {
-    const response = await fetch("/api/auth/logout", {
+    const response = await fetch(`${API_URL}/api/auth/logout`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
